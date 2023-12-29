@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        table {
+          font-family: arial, sans-serif;
+          border-collapse: collapse;
+          width: 100%;
+          background-color: #D6EEEE;
+        }
+        
+        td, th {
+          border: 1px transparent;
+          border-bottom: 0.5px solid black;
+          text-align: left;
+          padding: 8px;
+        }
+        
+        #createTaskBox {
+            position: relative;
+            top: -10px;
+            margin-top: 10px;
+            padding: 8px;
+            border: 1px solid black;
+            border-radius: 5px; 
+            font-size: 20px;
+            
+        }
+        
+        #createTaskBox input{
+            font-size: 20px;
+            margin-right: 20px;
+        }
+        
+        #createTaskBox input[type="checkbox"]{
+            position: relative;
+            top: 10px;
+            width: 27px; 
+            height: 27px;
+        }
+       
+        .updateClass {
+          width: 50px;
+          height: 50px;
+          margin: 0;
+          position: relative;
+        }
+
+        .deleteClass {
+          width: 50px;
+          height: 50px;
+          margin: 0;
+          position: relative;
+        }
+        </style>
+</head>
+<body id="body">
+
+<h2 id="h2Title">Create A Task</h2>
+<div id="createTaskBox">
+ <form action="/" method="POST">
+        <label for="title">Task:</label>
+        <input type="text" id="title" name="title" value="" required/>
+        
+        <label for="completed">Completed</label>
+        <input type="checkbox" id="completed" name="completed" value="False"/><br/><br/>
+        
+        <input id="btnSubmit" type="submit" value="Submit"/>
+        <input id="btnCancel" type="button" value="Cancel" onclick="cancel()"/>
+      </form>
+</div>
+
+<table id="table">
+    <tr>
+      <th>Task</th>
+      <th>Completed</th>
+      <th>Options</th>
+    </tr>
+     
+</table>
+
+<script>
+
+function cancel() {
+  window.location.reload()
+}
+
+function showTasks(allTasks) {
+const tableBox = document.getElementById('tableBox')
+
+for(i=0; i < allTasks.length; i++){
+ var tr = document.createElement("TR");
+  tr.setAttribute("id", "tr"+i);
+  document.getElementById("table").appendChild(tr);
+}
+
+for(i=0; i < allTasks.length; i++){
+  var tdt = document.createElement("TD");
+  var txtTask = document.createTextNode(allTasks[i].name);
+  tdt.appendChild(txtTask);
+  
+  var tdb = document.createElement("TD");
+  var bolCompleted = document.createTextNode(allTasks[i].completed);
+  tdb.appendChild(bolCompleted);
+  
+  var tdt1 = document.createElement("TD");
+
+  var imageIconUpdate = document.createElement("IMG")
+  imageIconUpdate.setAttribute('id', 'iconUpdateImg'+i)
+  imageIconUpdate.setAttribute('class', 'updateClass')
+  imageIconUpdate.setAttribute('alt', 'update icon img')
+  tdt1.appendChild(imageIconUpdate);
+
+  var imageIconDelete = document.createElement("IMG")
+  imageIconDelete.setAttribute('id', 'iconDeleteImg'+i)
+  imageIconDelete.setAttribute('class', 'deleteClass')
+  imageIconDelete.setAttribute('alt', 'delete icon img')
+  tdt1.appendChild(imageIconDelete);
+  
+  document.getElementById("tr"+i).appendChild(tdt);
+  document.getElementById("tr"+i).appendChild(tdb);
+  document.getElementById("tr"+i).appendChild(tdt1);
+}
+}
+
+  const btnSubmit = document.getElementById('btnSubmit')
+  const baseUrl = 'http://localhost:3000/api/todos'
+        
+
+  const getDataImg = async (allTasks) => {
+          const response = await fetch(baseUrl + '/iconUpdate', {
+            method: 'GET'
+          })
+          const data = await response.blob()
+          const blobUrl = URL.createObjectURL(data);
+          console.log(blobUrl);
+          for(i=0; i < allTasks.length; i++){
+          var iconUpdateImg = document.getElementById('iconUpdateImg'+i)
+          iconUpdateImg.src = blobUrl
+          }
+        }
+
+        const getDeleteImg = async (allTasks) => {
+          const response = await fetch(baseUrl + '/iconDelete', {
+            method: 'GET'
+          })
+          const data = await response.blob()
+          const blobUrl = URL.createObjectURL(data);
+          console.log(blobUrl);
+          for(i=0; i < allTasks.length; i++){
+          var iconDeleteImg = document.getElementById('iconDeleteImg'+i)
+          iconDeleteImg.src = blobUrl
+          }
+        }
+
+  let updateTaskId = 0  
+  let deleteTaskId = 0  
+
+  const getData = async () => {
+        const response = await fetch(baseUrl + '/alltasks', {
+          method: 'GET'
+        })
+        const data = await response.json()
+        console.log(data)
+        showTasks(data)
+        getDataImg(data)
+        getDeleteImg(data)
+        
+        document.querySelectorAll('.updateClass').forEach((item, index) => {
+          item.addEventListener('click', event => {
+            
+            setTimeout(function(){
+              item.style.width = "60px"
+              item.style.height = "60px"
+            },50);
+
+            setTimeout(function(){
+              item.style.width = "50px"
+              item.style.height = "50px"
+            },250);
+            
+            document.getElementById('h2Title').innerHTML = 'Update this Task'
+            document.getElementById('title').value = data[index].name
+            document.getElementById('completed').checked = data[index].completed
+            updateTaskId = data[index].id
+          })
+        })
+
+        document.querySelectorAll('.deleteClass').forEach((item, index) => {
+          item.addEventListener('click', event => {
+            
+            setTimeout(function(){
+              item.style.width = "60px"
+              item.style.height = "60px"
+            },50);
+
+            setTimeout(function(){
+              item.style.width = "50px"
+              item.style.height = "50px"
+            },250);
+            
+            document.getElementById('h2Title').innerHTML = 'Want to deleted this Task?'
+            document.getElementById('title').value = data[index].name
+            document.getElementById('completed').checked = data[index].completed
+            deleteTaskId = data[index].id
+          })
+        })
+  }
+  getData()
+        
+        btnSubmit.addEventListener('click', async (e) => {
+            e.preventDefault()
+            const title = document.getElementById('title')
+            const completed = document.getElementById('completed')
+            
+
+            if(document.getElementById('h2Title').innerHTML === 'Update this Task') { 
+                  const res = await fetch(baseUrl, {
+                    method: 'PUT',
+                    headers: {
+                        "Content-Type": 'application/json' 
+                    },
+                    body: JSON.stringify({
+                        id: updateTaskId,
+                        name: title.value,
+                        completed: completed.checked
+                    })
+                  })
+              } else if(document.getElementById('h2Title').innerHTML === 'Want to deleted this Task?'){
+                const res = await fetch(baseUrl, {
+                  method: 'DELETE',
+                  headers: {
+                    "Content-Type": 'application/json'
+                  },
+                  body: JSON.stringify({
+                      id: deleteTaskId,
+                      name: title.value,
+                      completed: completed.checked
+                  })
+                })
+              } else { 
+                const res = await fetch(baseUrl, {
+                  method: 'POST',
+                  headers: {
+                      "Content-Type": 'application/json' 
+                  },
+                  body: JSON.stringify({
+                      name: title.value,
+                      completed: completed.checked
+                  })
+                })
+              }
+
+            window.location.reload();
+        })
+    
+      </script>
+</body>
+</html>
